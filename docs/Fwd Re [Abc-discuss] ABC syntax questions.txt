@@ -1,0 +1,164 @@
+Status:  U
+Return-Path: <thornton_rose@yahoo.com>
+Received: from web901.mail.yahoo.com ([128.11.23.76])
+	by runyon.mail.mindspring.net (Mindspring Mail Service) with SMTP id t7g1es.dif.37kbi7f
+	for <thornton.rose@mindspring.com>; Wed, 31 Jan 2001 07:32:28 -0500 (EST)
+Received: (qmail 29299 invoked by uid 60001); 31 Jan 2001 12:32:27 -0000
+Message-ID: <20010131123227.29298.qmail@web901.mail.yahoo.com>
+Received: from [139.76.64.29] by web901.mail.yahoo.com; Wed, 31 Jan 2001 04:32:27 PST
+Date: Wed, 31 Jan 2001 04:32:27 -0800 (PST)
+From: Thornton Rose <thornton_rose@yahoo.com>
+Subject: Fwd: Re: [Abc-discuss] ABC syntax questions
+To: thornton.rose@mindspring.com
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+
+--- John Chambers <jc@trillian.mit.edu> wrote:
+> From: John Chambers <jc@trillian.mit.edu>
+> Reply-to: John Chambers <jc@trillian.mit.edu>
+> To: abc-discuss@lists.sourceforge.net
+> Subject: Re: [Abc-discuss] ABC syntax questions
+> Date: Thu, 04 Jan 2001 00:50:50 UTC
+> 
+> | I have been working on a machine readable grammar and parser
+> for
+> | ABC v1.6 and have accumulated a list of questions along the
+> way.
+> 
+> Well, I haven't seen any replies, so I'l make  a  few 
+> comments.   Of
+> course,  the abcusers list has a lot more (and vocal)
+> subscribers, so
+> maybe the questions could be asked there, too.
+> 
+> | - Tex commands are specified in Henrik Norbeck's BNF. Are
+> they
+> | part of the standard?
+> 
+> These seem to be mostly the escapes to get marcked chars. 
+> Unless  we
+> can get users to switch over to unicode, it's probably a good
+> idea to
+> have these in the standard.  They're easy enough to match, 
+> and  it's
+> easy  enough  to  translate  them  to  other  encodings.  I
+> routinely
+> translate them to HTML entities in my web site's scripts.
+> 
+> | - What should the line terminator be -- linefeed (\n),
+> carriage
+> | return (\r), CRLF (\r\n), or any one of these?
+> 
+> It's probably best to make  all  of  them  legal,  and 
+> suggest  that
+> programs  recognize  all  of  them.  Even better would be if
+> we could
+> convert to a syntax that didn't depend on  line  terminators, 
+> but  I
+> suppose it's far too late for that.
+> 
+> | - Can any line be continued with "\" or just music lines?
+> | - Can comments be continued with "\"?
+> 
+> The simplest rule for both implementers and users would be to 
+> always
+> take  a final '\' to mean "continued on next line", and have
+> it apply
+> everywhere. Some programs have tried to interpret it as
+> "continued on
+> the  next  line of the same type", but this is difficult to
+> implement
+> and is very confusing for users.  Nobody quite knows what
+> "same type"
+> means.   This has been discussed in various programming
+> language fora
+> in the past, and the general conclusion is that the simplest
+> rule  is
+> the best here.
+> 
+> | - Are multiple occurences of any field, except "X:" and
+> "K:",
+> | allowed?
+> 
+> They probably should be.  And "K:" can be repeated, too,  of 
+> course.
+> The  thing about the first one ending the headers is a quirk,
+> but one
+> that's not difficult to deal with.
+> 
+> | - Should blank lines be required between tunes?
+> 
+> It sure would have been nice if the first abc had had a
+> special  "end
+> of tune" marker, but it didn't, and it's probably too late to
+> fix it.
+> Aside from the problems it causes when people try  to  embed 
+> abc  in
+> html, it's not that big a deal.
+> 
+> | - Should at least 1 tune be required?
+> 
+> | - Is history (H:) really a multi-line field? That is, can
+> one do
+> | this?
+> 
+> There are files around on the Net that do this.  Maybe we
+> should mark
+> it  "deprecated"  and discourage its use in the future, with
+> the idea
+> of phasing it out.  It is a hassle for a parser.
+> 
+> | - Is "E:" part of the spec.? If so, what does it do?
+> 
+> Well, I've never used it.  What does it mean?  The docs I have
+>  don't
+> seem to say much about it.
+> 
+> | - Can "W:" occur in the header, in the music, or both?
+> 
+> I've seen some docs that say just the header.  But it makes a
+> lot  of
+> sense  to  accept  it anywhere, save up the text, and print it
+> at the
+> end of the tune.
+> 
+> | - Where can H-Z be used? (Henrik Norbeck's BNF specifies
+> that
+> | they are music elements, like barlines, but not note
+> elements. )
+> 
+> Good question.  The usual  idea  seems  to  be  that  they 
+> represent
+> ornaments,  but  this  is  probably  overly  specific.   They 
+> should
+> obviously be allowed anywhere that an ornament is allowed, 
+> and  it's
+> probably best if they are allowed pretty much anywhere.
+> 
+> | - Can an accompaniment chord occur outside of tuplet, e.g.
+> "D"(3dcg?
+> 
+> Sure would be nice.  I've seen evidence that current  software
+>  isn't
+> too  consistent about such things.  Allowing chords anywhere
+> is basic
+> user-friendliness.  A related question that some users have
+> asked  is
+> "Can  I  put several chords over a long rest and have them
+> spaced out
+> evenly?" Sure would be nice.
+> 
+> 
+> _______________________________________________
+> Abc-discuss mailing list
+> Abc-discuss@lists.sourceforge.net
+> http://lists.sourceforge.net/mailman/listinfo/abc-discuss
+
+
+=====
+~ Thornton
+http://www.geocities.com/thornton_rose
+
+__________________________________________________
+Get personalized email addresses from Yahoo! Mail - only $35 
+a year!  http://personal.mail.yahoo.com/ 

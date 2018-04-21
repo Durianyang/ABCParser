@@ -1,0 +1,989 @@
+/**
+ * This is the parser description file for a parser for ABC format (v1.6). It
+ * is divided into four sections: options, main parser class, lexical
+ * productions, and grammar rules.
+ */
+
+// ----------------------------------------------------------------------------
+// Options
+// ----------------------------------------------------------------------------
+
+options
+{
+   DEBUG_PARSER        = false;
+   DEBUG_TOKEN_MANAGER = false;
+}
+
+// ----------------------------------------------------------------------------
+// Parser class
+// ----------------------------------------------------------------------------
+
+PARSER_BEGIN(ABCParser)
+import java.io.*;
+
+/**
+ * This class is a parser for ABC format v1.6. It is generated from abc.jj.
+ *
+ * @author Thornton Rose
+ * @version 0.1
+ */
+public class ABCParser {
+   /**
+    * Run parser as standalone program.
+    */
+   public static void main(String args[]) {
+      FileInputStream in = null;
+      ABCParser       parser = null;
+
+      try {
+        if (args.length < 1) {
+           System.out.println("Usage: ABCParser <file>");
+        } else {
+           in = new FileInputStream(args[0]);
+
+            try {
+               parser = new ABCParser(in);
+               parser.parse();
+            } finally {
+               in.close();
+            }
+         }
+      } catch(Exception ex) {
+         System.out.println(ex);
+         // ex.printStackTrace(System.out);
+      }
+   }
+
+   /**
+    * Parse tune file.
+    */
+   public void parse() throws ParseException {
+      tuneFile();
+   }
+}
+PARSER_END(ABCParser)
+
+// ----------------------------------------------------------------------------
+// Lexical productions
+// ----------------------------------------------------------------------------
+
+<IN_ACCOMP_CHORD, IN_INDEX, IN_METER, IN_NOTE_LENGTH, IN_PARTS, IN_TEMPO>
+SKIP:
+{
+   < SKIP_WHITESPACE: <SPACE_OR_TAB> >
+}
+
+<*>
+TOKEN:
+{
+   // General
+   < COMMENT: "%" (~["\n","\r"])* >
+   | < #DIGIT: ["0"-"9"] >
+   | < #LETTER: <UPPER_LETTER> | <LOWER_LETTER> >
+   | < #UPPER_LETTER: ["A"-"Z"] >
+   | < #LOWER_LETTER: ["a"-"z"] >
+   | < #NOTE1: ["A"-"G"] >
+   | < #NOTE2: ["a"-"g"] >
+   | < #NOTE_UNIT: "1/" ("4" | "8" | "16" | "32") >
+   | < #SHARP_OR_FLAT: "#" | "b" >
+   | < #SPACE_OR_TAB: " " | "\t" >
+}
+
+<DEFAULT>
+TOKEN:
+{
+   // General
+
+   < EOL: "\r" | "\n" | "\r\n" >
+   | < NUMBER: (<DIGIT>)+ >
+
+   // Fields
+
+   // File   - B:, F:, G:, H:, I:, M:, O:, R:
+   // Header - A:, B:, C:, D:, G:, H:, I:, K:, L:, M:, N:, O:, P:, Q:, R:, S:,
+   //          T:, X:, Z:
+   // Music  - K:, L:, M:, P:, Q:, T:, W:
+
+   | < AREA_START:        "A:" > : IN_TEXT_LINE
+   | < BOOK_START:        "B:" > : IN_TEXT_LINE
+   | < COMPOSER_START:    "C:" > : IN_TEXT_LINE
+   | < DISCOGRAPHY_START: "D:" > : IN_TEXT_LINE
+   | < FILE_NAME_START:   "F:" > : IN_TEXT_LINE
+   | < GROUP_START:       "G:" > : IN_TEXT_LINE
+   | < HISTORY_START:     "H:" > : IN_TEXT_LINE  // Supposed to be multi-line. Yuch.
+   | < INFO_START:        "I:" > : IN_TEXT_LINE
+   | < INDEX_START:       "X:" > : IN_INDEX
+   | < KEY_START:         "K:" > : IN_KEY
+   | < NOTE_LENGTH_START: "L:" > : IN_NOTE_LENGTH
+   | < METER_START:       "M:" > : IN_METER
+   | < NOTES_START:       "N:" > : IN_TEXT_LINE
+   | < ORIGIN_START:      "O:" > : IN_TEXT_LINE
+   | < PARTS_START:       "P:" > : IN_PARTS
+   | < RHYTHM_START:      "R:" > : IN_TEXT_LINE
+   | < SOURCE_START:      "S:" > : IN_TEXT_LINE
+   | < TEMPO_START:       "Q:" > : IN_TEMPO
+   | < TITLE_START:       "T:" > : IN_TEXT_LINE
+   | < WORDS_START:       "W:" > : IN_TEXT_LINE
+   | < TRANS_NOTE_START:  "Z:" > : IN_TEXT_LINE
+
+   // v1.7.6 draft fields
+   // | < USER_DEF_START:    "U:" ~[":"] >
+
+   // Music elements
+
+   | < NOTE:                <NOTE1> | <NOTE2> >
+   | < NOTE_R:              <NOTE1> (<BAR_REPEAT_END> | <BAR_REPEAT_DOUBLE>)? >
+   | < REST:                "z" >
+   | < CUSTOM_NOTATION:     ["H"-"Z"] >
+   | < ACCIDENTAL:          "^" | "^^" | "=" | "_" | "__" >
+   | < OCTAVE_DOWN:         (",")+ >
+   | < OCTAVE_UP:           ("'")+ >
+   | < ACCENT_STACCATO:     "." >
+   | < ACCENT_ROLL:         "~" >
+   | < ACCENT_UPBOW:        "u" >
+   | < ACCENT_DOWNBOW:      "v" >
+   | < GRACE_START:         "{" >
+   | < GRACE_END:           "}" >
+   | < NOTE_CHORD_START:    "[" >
+   | < NOTE_CHORD_END:      "]" >
+   | < SLUR_START:          "(" >
+   | < SLUR_END:            ")" >
+   | < BROKEN_RHYTHM_LEFT:  ("<")+ >
+   | < BROKEN_RHYTHM_RIGHT: (">")+ >
+   | < TUPLET_P:            "(" <TUPLET_DIGIT> >
+   | < TUPLET_Q_OR_R:       ":" <TUPLET_DIGIT> >
+   | < #TUPLET_DIGIT:       ["2"-"9"] >
+   | < DIVIDE:              "/" >
+   | < TIE:                 "-" >
+   | < BAR:                 "|" >
+   | < BAR_DOUBLE:          "||" >
+   | < BAR_DOUBLE_START:    "[|" >
+   | < BAR_DOUBLE_END:      "|]" >
+   | < BAR_REPEAT_START:    "|:" >
+   | < BAR_REPEAT_END:      ":|" >
+   | < BAR_REPEAT_DOUBLE:   "::" > // shortcut for ":||:"
+   | < ACCOMP_CHORD_START:  "\"" > : IN_ACCOMP_CHORD
+   | < REPEAT:              "[" <DIGIT> >
+   | < CONTINUATION:        ("\\")+ >
+   | < JUSTIFICATION:       ("*")+ >
+}
+
+<DEFAULT, IN_KEY>
+TOKEN:
+{
+   < WHITESPACE: <SPACE_OR_TAB> >
+}
+
+<IN_TEXT_LINE>
+TOKEN:
+{
+   < TEXT_LINE: (~["\r", "\n", "%"])* > : DEFAULT
+}
+
+<IN_INDEX>
+TOKEN:
+{
+   < INDEX_NUMBER: <NUMBER> > : DEFAULT
+}
+
+<IN_KEY>
+TOKEN:
+{
+   < KEY_NOTE: <NOTE1> (<SHARP_OR_FLAT>)? >
+   | < KEY_BAGPIPE: "HP" | "Hp" >
+   | < KEY_GLOBAL_ACCIDENTAL: <ACCIDENTAL> <NOTE2> >
+   | < KEY_EOL: <EOL> > : DEFAULT
+}
+
+<IN_KEY>
+TOKEN [IGNORE_CASE]:
+{
+   < KEY_MODE: <MAJOR> | <MINOR> | <LYDIAN> | <IONIAN> | <MIXOLYDIAN> |
+      <DORIAN> | <AEOLIAN> | <PHRYGIAN> | <LOCRIAN> >
+   | < #MAJOR:      "maj" | "major" >
+   | < #MINOR:      "m"   | "min" | "minor" >
+   | < #LYDIAN:     "lyd" | "lydian" >
+   | < #IONIAN:     "ion" | "ionian" >
+   | < #MIXOLYDIAN: "mix" | "mixolydian" >
+   | < #DORIAN:     "dor" | "dorian" >
+   | < #AEOLIAN:    "aeo" | "aeolian" >
+   | < #PHRYGIAN:   "phr" | "phrygian" >
+   | < #LOCRIAN:    "loc" | "locrian" >
+}
+
+<IN_ACCOMP_CHORD>
+TOKEN:
+{
+   < ACCOMP_CHORD_NAME: <NOTE1> (<LETTER> | <DIGIT>)* >
+   | < ACCOMP_CHORD_END: "\"" > : DEFAULT
+
+   /*
+   v1.7.6 draft
+   < ACCOMP_CHORD_NOTE: <NOTE1> (<SHARP_OR_FLAT)? >
+   | < ACCOMP_CHORD_TYPE: (<LETTER> | <DIGIT>)+ >
+   | < ACCOMP_CHORD_BASS_START: "/" >
+   */
+}
+
+<IN_METER>
+TOKEN:
+{
+   < METER_COMMON: "C" > : DEFAULT
+   | < METER_CUT: "C|" > : DEFAULT
+   | < METER_FRACTION: <METER_TOP> "/" <METER_BOTTOM> > : DEFAULT
+   | < #METER_TOP: ["1"-"9"] (<DIGIT>)* >
+   | < #METER_BOTTOM: "2" | "4" | "8" | "16" | "32" >
+}
+
+<IN_PARTS>
+TOKEN:
+{
+   < PART_LABEL: <UPPER_LETTER> >
+   /*
+   v1.7.6 draft
+   | < PART_SEPARATOR: "." >
+   | < PART_COUNT: <DIGIT> >
+   | < PART_GROUP_START: "(" >
+   | < PART_GROUP_END: ")" >
+   */
+   | < PART_EOL: <EOL> > : DEFAULT
+}
+
+<IN_NOTE_LENGTH>
+TOKEN:
+{
+   < NOTE_LENGTH_NOTE_UNIT: <NOTE_UNIT> > : DEFAULT
+}
+
+<IN_TEMPO>
+TOKEN:
+{
+   < TEMPO_NOTE_UNIT: <NOTE_UNIT> >
+   | < TEMPO_ASSIGN: "=" >
+   | < TEMPO_COUNT: <NUMBER> > : DEFAULT
+}
+
+// ----------------------------------------------------------------------------
+// Grammar
+// ----------------------------------------------------------------------------
+
+// File -----------------------------------------------------------------------
+
+void tuneFile():
+{
+}
+{
+   (nullLine() | fileField() | tune())+
+}
+
+void fileField():
+{
+}
+{
+   fieldBook() | fieldFileName() | fieldGroup() | fieldHistory() |
+   fieldInfo() | fieldMeter() | fieldOrigin() | fieldRhythm()
+}
+
+// Tune -----------------------------------------------------------------------
+
+void tune():
+{
+   System.out.println("");
+   System.out.println("(begin tune)");
+}
+{
+   tuneHeader() tuneMusic() (<EOL> | <EOF>)
+   {
+      System.out.println("(end tune)");
+      System.out.println("");
+   }
+}
+
+// Tune header ----------------------------------------------------------------
+
+void tuneHeader():
+{
+   Token ref = null;
+}
+{
+   fieldIndex() fieldTitle()
+   ( fieldTitle() | fieldArea() | fieldBook() | fieldComposer() |
+     fieldDiscography() | fieldGroup() | fieldHistory() | fieldInfo() |
+     fieldMeter() | fieldNoteLength() | fieldNotes() | fieldOrigin() |
+     fieldParts() | fieldRhythm() | fieldSource() | fieldTempo() |
+     fieldTransNote() | fieldWords() )*
+   fieldKey()
+}
+
+// Tune music -----------------------------------------------------------------
+
+void tuneMusic():
+{
+   System.out.println("(music)");
+}
+{
+   (<COMMENT> <EOL> | musicField() | musicLine())+
+}
+
+void musicField():
+{
+}
+{
+   fieldKey() | fieldNoteLength() | fieldMeter() | fieldMusicPart() |
+   fieldTempo() | fieldTitle()  | fieldWords()
+}
+
+void musicLine():
+{
+   Token cont = null;
+   Token just = null;
+}
+{
+   (musicElement())+
+   [LOOKAHEAD(2) (just=<JUSTIFICATION> | cont=<CONTINUATION>) (<WHITESPACE>)*]
+   lineEnd()
+   {
+      if (just != null) {
+         System.out.println("*");
+      } else if (cont != null) {
+         System.out.println("\\");
+      } else {
+         System.out.println("");
+      }
+   }
+}
+
+void musicElement():
+{
+   Token tok = null;
+}
+{
+   noteElement() | tupletElement() | barline() | tok=<REPEAT> |
+   tok=<SLUR_START> | tok=<SLUR_END> | tok=<WHITESPACE>
+   {
+      if (tok != null) {
+         System.out.print(tok);
+      }
+   }
+}
+
+void noteElement():
+{
+}
+{
+   [accompChord() (<WHITESPACE>)*]
+   [graceNotes() (<WHITESPACE>)*]
+   (accent())* (noteSpec_R() | noteChord()) [brokenRhythm()]
+}
+
+void accompChord():
+{
+   Token tok = null;
+
+   /*
+   v1.7.6 draft syntax
+
+   Token chordNote = null;
+   Token chordAcc = null;
+   Token chordType = null;
+   Token chordBass = null;
+   */
+}
+{
+   <ACCOMP_CHORD_START> tok=<ACCOMP_CHORD_NAME> <ACCOMP_CHORD_END>
+   {
+      System.out.print("\"" + tok + "\"");
+   }
+
+   /*
+   v1.7.6 draft syntax
+
+   <ACCOMP_CHORD_START> chordNote=<ACCOMP_CHORD_NOTE>
+   [chordType=<ACCOMP_CHORD_TYPE>] ["/" chordBass=<ACCOMP_CHORD_NOTE>]
+   <ACCOMP_CHORD_END>
+   {
+      if (chordNote != null) {
+         System.out.print(
+            "\"" + chordNote +
+            (chordAcc == null ? "" : chordAcc.toString()) +
+            (chordType == null ? "" : chordType.toString()) +
+            (chordBass == null ? "" : "/" + chordAcc.toString()) +
+            "\"");
+      }
+   }
+   */
+}
+
+void graceNotes():
+{
+}
+{
+   <GRACE_START>
+   {
+      System.out.print("{");
+   }
+   (notePitch())+ <GRACE_END>
+   {
+      System.out.print("}");
+   }
+}
+
+void accent():
+{
+   Token tok = null;
+}
+{
+   tok=<ACCENT_STACCATO> | tok=<ACCENT_ROLL> |
+   tok=<ACCENT_UPBOW> | tok=<ACCENT_DOWNBOW> |
+   tok=<CUSTOM_NOTATION>
+   {
+      System.out.print(tok);
+   }
+}
+
+void noteSpec():
+{
+}
+{
+   (notePitch() | rest()) [lengthMultiplier()] [lengthDivider()] [tie()]
+}
+
+void noteSpec_R():
+{
+}
+{
+   (notePitch_R() | rest()) [lengthMultiplier()] [lengthDivider()] [tie()]
+}
+
+void notePitch():
+{
+   Token  accidental = null;
+   Token  note = null;
+   Token  octave = null;
+}
+{
+   [accidental=<ACCIDENTAL>] note=<NOTE>
+   [octave=<OCTAVE_UP> | octave=<OCTAVE_DOWN>]
+   {
+      System.out.print(
+         (accidental == null ? "" : accidental.toString()) +
+         note.toString() +
+         (octave == null ? "" : octave.toString()) );
+   }
+}
+
+void notePitch_R():
+{
+   Token  accidental = null;
+   Token  note = null;
+   Token  octave = null;
+   String noteStr = null;
+   String temp = null;
+   String bar = null;
+   int    p = 0;
+}
+{
+   [accidental=<ACCIDENTAL>] (note=<NOTE> | note=<NOTE_R>)
+   [octave=<OCTAVE_UP> | octave=<OCTAVE_DOWN>]
+   {
+      noteStr = note.toString();
+      p = noteStr.indexOf(':');
+
+      if (p >= 0) {
+         /*
+         if (inGrace) {
+            throw new ParseException(
+               "Encountered ':' before end of grace notes.");
+         }
+         */
+
+         temp = noteStr.substring(0, 1);
+         bar = noteStr.substring(p, p + 2);
+
+         if ((p + 2) < noteStr.length()) {
+            temp += noteStr.substring(p + 2);
+         }
+
+         noteStr = temp;
+      }
+
+      System.out.print(
+         (accidental == null ? "" : accidental.toString()) +
+         noteStr +
+         (octave == null ? "" : octave.toString()) +
+         (bar == null ? "" : " " + bar + " ") );
+   }
+}
+
+void rest():
+{
+   Token tok = null;
+}
+{
+   tok=<REST>
+   {
+      System.out.print(tok);
+   }
+}
+
+void lengthMultiplier():
+{
+   Token tok = null;
+}
+{
+   tok=<NUMBER>
+   {
+      System.out.print(tok);
+   }
+}
+
+void lengthDivider():
+{
+   Token div = null;
+   Token len = null;
+}
+{
+   div=<DIVIDE> [len=<NUMBER>]
+   {
+      System.out.print(div);
+
+      if (len != null) {
+         System.out.print(len);
+      }
+   }
+}
+
+void tie():
+{
+   Token tok = null;
+}
+{
+   tok=<TIE>
+   {
+      System.out.print(tok);
+   }
+}
+
+void noteChord():
+{
+}
+{
+   <NOTE_CHORD_START> (noteSpec())+ <NOTE_CHORD_END>
+}
+
+void brokenRhythm():
+{
+   Token  tok = null;
+   String tokStr = "";
+}
+{
+   tok=<BROKEN_RHYTHM_LEFT> | tok=<BROKEN_RHYTHM_RIGHT>
+   {
+      System.out.print(tok);
+   }
+}
+
+void tupletElement():
+{
+   Token p = null;
+   Token q = null;
+   Token r = null;
+}
+{
+   p=<TUPLET_P> [q=<TUPLET_Q_OR_R> [r=<TUPLET_Q_OR_R>]]
+   {
+      System.out.print(
+         p +
+         (q == null ? "" : q.toString()) +
+         (r == null ? "" : r.toString()) );
+   }
+   (LOOKAHEAD(2) noteElement())+
+}
+
+void barline():
+{
+   Token bar = null;
+   Token repeat = null;
+}
+{
+   (bar=<BAR> | bar=<BAR_DOUBLE> | bar=<BAR_DOUBLE_START> |
+    bar=<BAR_DOUBLE_END> | bar=<BAR_REPEAT_START> | bar=<BAR_REPEAT_END> |
+    bar=<BAR_REPEAT_DOUBLE>)
+   [repeat=<NUMBER>]
+   {
+      System.out.print(
+         bar +
+         (repeat == null ? "" : " [" + repeat + " ") );
+   }
+}
+
+// Fields ---------------------------------------------------------------------
+
+void fieldArea():
+{
+   String text = null;
+}
+{
+   <AREA_START> text=textToEOL()
+   {
+      System.out.println("A:" + text);
+   }
+}
+
+void fieldBook():
+{
+   String text = null;
+}
+{
+   <BOOK_START> text=textToEOL()
+   {
+      System.out.println("B:" + text);
+   }
+}
+
+void fieldComposer():
+{
+   String text = null;
+}
+{
+   <COMPOSER_START> text=textToEOL()
+   {
+      System.out.println("C:" + text);
+   }
+}
+
+void fieldDiscography():
+{
+   String text = null;
+}
+{
+   <DISCOGRAPHY_START> text=textToEOL()
+   {
+      System.out.println(text);
+   }
+}
+
+void fieldFileName():
+{
+   String text = null;
+}
+{
+   <FILE_NAME_START> text=textToEOL()
+   {
+      System.out.println("F:" + text);
+   }
+}
+
+void fieldGroup():
+{
+   String text = null;
+}
+{
+   <GROUP_START> text=textToEOL()
+   {
+      System.out.println("G:" + text);
+   }
+}
+
+void fieldHistory():
+{
+   String text = null;
+}
+{
+   <HISTORY_START> text=textToEOL()
+   {
+      System.out.println("H:" + text);
+   }
+}
+
+void fieldIndex():
+{
+   Token index = null;
+}
+{
+   <INDEX_START> index=<INDEX_NUMBER> lineEnd()
+   {
+      System.out.println("X:" + index);
+   }
+}
+
+void fieldInfo():
+{
+   String text = null;
+}
+{
+   <INFO_START> text=textToEOL()
+   {
+      System.out.println("I:" + text);
+   }
+}
+
+void fieldKey():
+{
+}
+{
+   <KEY_START> (<WHITESPACE>)* (keyBagpipe() | keyGeneral()) (<WHITESPACE>)*
+      [<COMMENT>] <KEY_EOL>
+   {
+      System.out.println("");
+   }
+}
+
+void keyBagpipe():
+{
+   Token key = null;
+}
+{
+   // ???: Split <KEY_BAGPIPE> into two tokens?
+
+   key=<KEY_BAGPIPE>
+   {
+      System.out.print("K:" + key);
+   }
+}
+
+void keyGeneral():
+{
+   Token        keyNote = null;
+   Token        keyMode = null;
+   StringBuffer globAccs = new StringBuffer();
+}
+{
+   keyNote=<KEY_NOTE>
+   [LOOKAHEAD(2) (<WHITESPACE>)* keyMode=<KEY_MODE>]
+   [LOOKAHEAD(2) (<WHITESPACE>)+ globalAccidentalList(globAccs)]
+   {
+      System.out.print(
+         "K:" + keyNote +
+         (keyMode == null ? "" : " " + keyMode) +
+         globAccs.toString() );
+   }
+}
+
+void globalAccidentalList(StringBuffer sb):
+{
+}
+{
+   globalAccidental(sb) (LOOKAHEAD(2) (<WHITESPACE>)+ globalAccidental(sb))*
+}
+
+void globalAccidental(StringBuffer sb):
+{
+   Token tok = null;
+}
+{
+   tok=<KEY_GLOBAL_ACCIDENTAL>
+   {
+      sb.append(" " + tok.toString());
+   }
+}
+
+void fieldMeter():
+{
+   Token tok = null;
+}
+{
+   <METER_START>
+   (tok=<METER_COMMON> | tok=<METER_CUT> | tok=<METER_FRACTION>)
+   lineEnd()
+   {
+      System.out.println("M:" + tok);
+   }
+}
+
+void fieldNoteLength():
+{
+   Token tok = null;
+}
+{
+   <NOTE_LENGTH_START> tok=<NOTE_LENGTH_NOTE_UNIT> lineEnd()
+   {
+      System.out.println("L:" + tok);
+   }
+}
+
+void fieldNotes():
+{
+   String text = null;
+}
+{
+   <NOTES_START> text=textToEOL()
+   {
+      System.out.println("N:" + text);
+   }
+}
+
+void fieldOrigin():
+{
+   String text = null;
+}
+{
+   <ORIGIN_START> text=textToEOL()
+   {
+      System.out.println("O:" + text);
+   }
+}
+
+void fieldParts():
+{
+   StringBuffer buf = new StringBuffer();
+}
+{
+   <PARTS_START> (partLabel(buf))+ [<COMMENT>] <PART_EOL>
+   {
+      System.out.println("P:" + buf);
+   }
+
+   /*
+   v1.7.6 draft
+   <PARTS_START> partSpec(buf) (<PART_SEPARATOR> partSpec(buf))*
+   [<COMMENT>] <PART_EOL>
+   */
+}
+
+/*
+v1.7.6 draft
+
+void partSpec(StringBuffer sb):
+{
+}
+{
+   [partCount(sb)]
+      (partLabel(sb) | (<PART_GROUP_START> partSpec(sb) <PART_GROUP_END>))
+}
+
+void partCount(StringBuffer sb):
+{
+   Token count = null;
+}
+{
+   count=<PART_COUNT>
+   {
+      // System.out.print(count);
+      sb.append(count.toString());
+   }
+}
+*/
+
+void partLabel(StringBuffer sb):
+{
+   Token tok = null;
+}
+{
+   tok=<PART_LABEL>
+   {
+      // System.out.print(tok);
+      sb.append(tok.toString());
+   }
+}
+
+void fieldMusicPart():
+{
+   StringBuffer buf = new StringBuffer();
+}
+{
+   <PARTS_START> partLabel(buf) [<COMMENT>] <PART_EOL>
+   {
+      System.out.println("P:" + buf);
+   }
+}
+
+void fieldRhythm():
+{
+   String text = null;
+}
+{
+   <RHYTHM_START> text=textToEOL()
+   {
+      System.out.println("R:" + text);
+   }
+}
+
+void fieldSource():
+{
+   String text = null;
+}
+{
+   <SOURCE_START> text=textToEOL()
+   {
+      System.out.println("S:" + text);
+   }
+}
+
+void fieldTempo():
+{
+   Token count = null;
+   Token unit = null;
+}
+{
+   <TEMPO_START> [unit=<TEMPO_NOTE_UNIT> <TEMPO_ASSIGN>] count=<TEMPO_COUNT>
+   lineEnd()
+   {
+      System.out.println(
+         "Q:" +
+         (unit == null ? "" : unit + "=") +
+         count.toString() );
+   }
+}
+
+void fieldTitle():
+{
+   String text = null;
+}
+{
+   <TITLE_START> text=textToEOL()
+   {
+      System.out.println("T:" + text);
+   }
+}
+
+void fieldTransNote():
+{
+   String text = null;
+}
+{
+   <TRANS_NOTE_START> text=textToEOL()
+   {
+      System.out.println("Z:" + text);
+   }
+}
+
+// Words ----------------------------------------------------------------------
+
+void fieldWords():
+{
+   String text = null;
+}
+{
+   <WORDS_START> text=textToEOL()
+   {
+      System.out.println("W:" + text);
+   }
+}
+
+// Misc. ----------------------------------------------------------------------
+
+void nullLine():
+{
+}
+{
+   (<WHITESPACE>)* lineEnd()
+}
+
+String textToEOL():
+{
+   Token text = null;
+}
+{
+   text=<TEXT_LINE> lineEnd()
+   {
+      return text.toString().trim();
+   }
+}
+
+void lineEnd():
+{
+}
+{
+   [<COMMENT>] <EOL>
+}

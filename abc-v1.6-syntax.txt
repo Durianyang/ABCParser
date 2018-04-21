@@ -1,0 +1,280 @@
+ABC v1.6 Syntax
+
+This document contains the formal grammar for ABC v1.6 in Backus Naur Form
+(BNF).
+
+-------------------------------------------------------------------------------
+
+BNF NOTATION
+
+Rule definitions (productions) have the form "identifier ::= expression", where
+identifiers for terminals (tokens) are written in upper case, identifiers for
+non-terminals are written in Java-style mixed case, and expressions are a list
+of one or more terminals, non-terminals, and groups, separated by whitespace.
+
+   Examples:
+
+   <DIGIT>          ::= ["0"-"9"]
+   <NUMBER>         ::= (<DIGIT>)+
+   lengthMultiplier ::= <NUMBER>
+   lengthDivider    ::= "/" (<NUMBER>)?
+   tune             ::= tuneHeader tuneMusic (<EOL> | <EOF>)
+
+Literals are delimited with double quotes, with \" being used to specify
+a literal quote.
+
+   Example:
+
+   "foo"
+   "one \"two\" three"
+
+Choices are separated with "|".
+
+   Example:
+
+   <NOTE> | <REST>
+
+Groups are delimited with "(" and ")", optionally followed by one of the
+following:
+
+   - "?": 0 or 1 matches (an optional element), e.g. (<NOTE>)?
+   - "*": 0 or more matches, e.g. (<NOTE>)*
+   - "+": 1 or more matches, e.g. (<NOTE>)+
+
+   Examples:
+
+   (<EOL> | <EOF>)
+   (<NUMBER>)?
+   (accent)*
+   (notePitch)+
+
+Sets are delimited with "[" and "]", with multiple values separated by ",",
+e.g. ["a","c"]. Range values within a set are separated with "-", e.g.
+["A"-"Z"]. Negation of a set is specified with "~", e.g. ~["\r", "\n"].
+
+   Examples:
+
+   <NOTE> ::= ["A"-"G", "a"-"g"]
+   <TEXT> ::= (~["\r", "\n", "%"])*
+
+Comments about a rule start with "//" and extend to the end of the line.
+
+   Example:
+
+   fieldIndex ::= <INDEX_START> <NUMBER> <EOL>  // Whitespace is ignored.
+
+-------------------------------------------------------------------------------
+
+ABC GRAMMAR RULES
+
+tuneFile         ::= (nullLine | fileField | tune)+
+
+fileField        ::= fieldBook | fieldFileName | fieldGroup | fieldHistory |
+                     fieldInfo | fieldMeter | fieldOrigin | fieldRhythm
+
+tune             ::= tuneHeader tuneMusic (<EOL> | <EOF>)
+
+tuneHeader       ::= fieldIndex fieldTitle
+                     (fieldTitle | fieldArea | fieldBook | fieldComposer |
+                        fieldDiscography | fieldGroup | fieldHistory |
+                        fieldInfo | fieldMeter | fieldNoteLength | fieldNotes |
+                        fieldOrigin | fieldParts | fieldRhythm | fieldSource |
+                        fieldTempo | fieldTransNote | fieldWords)*
+                     fieldKey
+
+tuneMusic        ::= (<COMMENT> <EOL> | musicField | musicLine)+
+
+musicField       ::= fieldKey | fieldNoteLength | fieldMeter | fieldMusicPart |
+                     fieldTempo | fieldTitle | fieldWords
+
+musicLine        ::= (musicElement)+
+                     ((<JUSTIFICATION> | <CONTINUATION>) (<WHITESPACE>)*)?
+                     lineEnd
+
+musicElement     ::= noteElement | tupletElement | barline | <REPEAT> |
+                    <SLUR_START> | <SLUR_END> | <WHITESPACE>
+
+noteElement      ::= (accompChord (<WHITESPACE>)*)?
+                     (graceNotes (<WHITESPACE>)*)?
+                     (accent)* (noteSpec_R | noteChord) (brokenRhythm)?
+
+accompChord      ::= <ACCOMP_CHORD_START> <ACCOMP_CHORD_NAME> <ACCOMP_CHORD_END>
+
+graceNotes       ::= <GRACE_START> (notePitch)+ <GRACE_END>
+
+accent           ::= <ACCENT_STACCATO> | <ACCENT_ROLL> | <ACCENT_UPBOW> |
+                     <ACCENT_DOWNBOW> | <CUSTOM_NOTATION>
+
+noteSpec         ::= (notePitch | rest) (lengthMultiplier)? (lengthDivider)?
+                     (tie)?
+
+noteSpec_R       ::= (notePitch_R | rest) (lengthMultiplier)? (lengthDivider)?
+                     (tie)?
+
+notePitch        ::= (<ACCIDENTAL>)? <NOTE> (<OCTAVE_UP> | <OCTAVE_DOWN>)?
+
+notePitch_R      ::= (<ACCIDENTAL>)? (<NOTE> | <NOTE_R>)
+                     (<OCTAVE_UP> | <OCTAVE_DOWN>)?
+
+rest             ::= <REST>
+
+lengthMultiplier ::= <NUMBER>
+
+lengthDivider    ::= <DIVIDE> (<NUMBER>)?
+
+tie              ::= <TIE>
+
+noteChord        ::= <NOTE_CHORD_START> (noteSpec)+ <NOTE_CHORD_END>
+
+brokenRhythm     ::= <BROKEN_RHYTHM_LEFT> | <BROKEN_RHYTHM_RIGHT>
+
+tupletElement    ::= <TUPLET_P> (<TUPLET_Q_OR_R> (<TUPLET_Q_OR_R>)?)?
+                     (noteElement)+
+
+barline          ::= (<BAR> | <BAR_DOUBLE> | <BAR_DOUBLE_START> |
+                         <BAR_DOUBLE_END> | <BAR_REPEAT_START> |
+                         <BAR_REPEAT_END> | <BAR_REPEAT_DOUBLE>)
+                     (<NUMBER>)?
+
+fieldArea        ::= <AREA_START> textToEOL
+
+fieldBook        ::= <BOOK_START> textToEOL
+
+fieldComposer    ::= <COMPOSER_START> textToEOL
+
+fieldDiscography ::= <DISCOGRAPHY_START> textToEOL
+
+fieldFileName    ::= <FILE_NAME_START> textToEOL
+
+fieldGroup       ::= <GROUP_START> textToEOL
+
+fieldHistory     ::= <HISTORY_START> textToEOL
+
+fieldIndex       ::= <INDEX_START> <NUMBER> <EOL>
+                     // Whitespace is ignored.
+
+fieldInfo        ::= <INFO_START> textToEOL
+
+fieldKey         ::= <KEY_START> (<WHITESPACE>)* (keyBagpipe | keyGeneral)
+                    (<WHITESPACE>)* (<COMMENT>)? <KEY_EOL>
+
+keyBagpipe       ::= <KEY_BAGPIPE>
+
+keyGeneral       ::= <KEY_NOTE> ((<WHITESPACE>)* <KEY_MODE>)?
+                     ((<WHITESPACE>)+ globAccList)*
+
+globAccList      ::= globalAccidental ((<WHITESPACE>)+ globalAccidental)*
+
+globalAccidental ::= <KEY_GLOBAL_ACCIDENTAL>
+
+fieldMeter       ::= <METER_START> (<METER_COMMON> | <METER_CUT> |
+                     <METER_FRACTION>) lineEnd
+                     // Whitespace is ignored.
+
+fieldMusicPart   ::= <PARTS_START> partLabel [<COMMENT>] <PART_EOL>
+
+fieldNoteLength  ::= <NOTE_LENGTH_START> <NOTE_LENGTH_NOTE_UNIT> lineEnd
+                     // Whitespace is ignored.
+
+fieldNotes       ::= <NOTES_START> textToEOL
+
+fieldOrigin      ::= <ORIGIN_START> textToEOL
+
+fieldParts       ::= <PARTS_START> (partLabel())+ [<COMMENT>] <PART_EOL>
+                     // Whitespace is ignored.
+
+fieldRhythm      ::= <RHYTHM_START> textToEOL
+
+fieldSource      ::= <SOURCE_START> textToEOL
+
+fieldTempo       ::= <TEMPO_START> [<TEMPO_NOTE_UNIT> <TEMPO_ASSIGN>]
+                     <TEMPO_COUNT> lineEnd
+                     // Whitespace is ignored.
+
+fieldTitle       ::= <TITLE_START> textToEOL
+
+fieldWords       ::= <WORDS_START> textToEOL
+
+fieldTransNote   ::= <TRANS_NOTE_START> textToEOL
+
+lineEnd          ::= (<COMMENT>)? <EOL>
+
+textToEOL        ::= <TEXT_LINE> lineEnd
+                     // Parser may want to trim <TEXT_LINE>.
+
+nullLine         ::= (<WHITESPACE>)* lineEnd
+
+<EOL>                 ::= "\r" | "\n" | "\r\n"
+<EOF>                 ::= // end of file
+<WHITESPACE>          ::= <SPACE_OR_TAB>
+<SPACE_OR_TAB>        ::= " " | "\t"
+<COMMENT>             ::= "%" (~["\n","\r"])*
+<TEXT_LINE>           ::= (~["\r", "\n", "%"])*
+<NUMBER>              ::= (<DIGIT>)+
+<DIGIT>               ::= ["0"-"9"]
+<LETTER>              ::= <UPPER_LETTER> | <LOWER_LETTER>
+<UPPER_LETTER>        ::= ["A"-"Z"]
+<LOWER_LETTER>        ::= ["a"-"z"]
+<SHARP_OR_FLAT>       ::= "#" | "b"  // Used in fields not music.
+
+<NOTE>                ::= <NOTE1> | <NOTE2>
+<NOTE_R>              ::= <NOTE1> (<BAR_REPEAT_END> | <BAR_REPEAT_DOUBLE>)?
+<NOTE1>               ::= ["A"-"G"]
+<NOTE2>               ::= ["a"-"g"]
+<REST>                ::= "z"
+<NOTE_UNIT>           ::= "1/" ("4" | "8" | "16" | "32")
+<CUSTOM_NOTATION>     ::= ["H"-"Z"]
+<CUSTOM_NOTATION_R>   ::= <CUSTOM_NOTATION> (<BAR_REPEAT_END> | <BAR_REPEAT_DOUBLE>)?
+<ACCIDENTAL>          ::= "^" | "^^" | "=" | "_" | "__"
+<OCTAVE_DOWN>         ::= (",")+
+<OCTAVE_UP>           ::= ("'")+
+<ACCENT_STACCATO>     ::= "."
+<ACCENT_ROLL>         ::= "~"
+<ACCENT_UPBOW>        ::= "u"
+<ACCENT_DOWNBOW>      ::= "v"
+<GRACE_START>         ::= "{"
+<GRACE_END>           ::= "}"
+<NOTE_CHORD_START>    ::= "["
+<NOTE_CHORD_END>      ::= "]"
+<SLUR_START>          ::= "("
+<SLUR_END>            ::= ")"
+<BROKEN_RHYTHM_LEFT>  ::= ("<")+
+<BROKEN_RHYTHM_RIGHT> ::= (">")+
+<TUPLET_P>            ::= "(" <TUPLET_DIGIT>
+<TUPLET_Q_OR_R>       ::= ":" <TUPLET_DIGIT>
+<#TUPLET_DIGIT>       ::= ["2"-"9"]
+<DIVIDE>              ::= "/"
+<TIE>                 ::= "-"
+<BAR>                 ::= "|"
+<BAR_DOUBLE>          ::= "||"
+<BAR_DOUBLE_START>    ::= "[|"
+<BAR_DOUBLE_END>      ::= "|]"
+<BAR_REPEAT_START>    ::= "|:"
+<BAR_REPEAT_END>      ::= ":|"
+<BAR_REPEAT_DOUBLE>   ::= "::"  // shortcut for ":||:"
+<ACCOMP_CHORD_START>  ::= "\""
+<REPEAT>              ::= "[" <DIGIT>
+<CONTINUATION>        ::= ("\\")+
+<JUSTIFICATION>       ::= ("*")+
+
+<AREA_START>          ::= "A:"
+<BOOK_START>          ::= "B:"
+<COMPOSER_START>      ::= "C:"
+<DISCOGRAPHY_START>   ::= "D:"
+<FILE_NAME_START>     ::= "F:"
+<GROUP_START>         ::= "G:"
+<HISTORY_START>       ::= "H:"
+<INFO_START>          ::= "I:"
+<INDEX_START>         ::= "X:"
+<KEY_START>           ::= "K:"
+<NOTE_LENGTH_START>   ::= "L:"
+<METER_START>         ::= "M:"
+<NOTES_START>         ::= "N:"
+<ORIGIN_START>        ::= "O:"
+<PARTS_START>         ::= "P:"
+<RHYTHM_START>        ::= "R:"
+<SOURCE_START>        ::= "S:"
+<TEMPO_START>         ::= "Q:"
+<TITLE_START>         ::= "T:"
+<WORDS_START>         ::= "W:"
+<TRANS_NOTE_START>    ::= "Z:"

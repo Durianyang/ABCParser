@@ -1,0 +1,123 @@
+Status:  U
+Return-Path: <thornton_rose@yahoo.com>
+Received: from web901.mail.yahoo.com ([128.11.23.76])
+	by strange.mail.mindspring.net (Mindspring Mail Service) with SMTP id t7g1kn.bhg.37kbi0u
+	for <thornton.rose@mindspring.com>; Wed, 31 Jan 2001 07:35:35 -0500 (EST)
+Received: (qmail 29594 invoked by uid 60001); 31 Jan 2001 12:35:34 -0000
+Message-ID: <20010131123534.29593.qmail@web901.mail.yahoo.com>
+Received: from [139.76.64.29] by web901.mail.yahoo.com; Wed, 31 Jan 2001 04:35:34 PST
+Date: Wed, 31 Jan 2001 04:35:34 -0800 (PST)
+From: Thornton Rose <thornton_rose@yahoo.com>
+Subject: Fwd: Re: [Abc-discuss] ABC syntax questions
+To: thornton.rose@mindspring.com
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+
+--- James Allwright <J.R.Allwright@westminster.ac.uk> wrote:
+> Date: Tue, 2 Jan 2001 09:49:53 +0000
+> From: James Allwright <J.R.Allwright@westminster.ac.uk>
+> To: Thornton Rose <thornton_rose@yahoo.com>
+> Subject: Re: [Abc-discuss] ABC syntax questions
+> 
+> 
+> Here are my answers (off the top of my head and not
+> definitive) :
+> 
+> On Fri 29 Dec 2000 at 12:20PM -0800, Thornton Rose wrote:
+> > I have been working on a machine readable grammar and parser
+> for
+> > ABC v1.6 and have accumulated a list of questions along the
+> way.
+> > 
+> > - Tex commands are specified in Henrik Norbeck's BNF. Are
+> they
+> > part of the standard?
+> 
+> Not really, because only abc2mtex has access to a TeX
+> interpreter.
+> Other programs ignore TeX commands at best.
+>  
+> > - What should the line terminator be -- linefeed (\n),
+> carriage
+> > return (\r), CRLF (\r\n), or any one of these?
+> 
+> A good parser should support all terminators used by text
+> files under
+> the popular Operating Systems; linefeed, CRLF and whatever the
+> Mac uses.
+>  
+> > - Can any line be continued with "\" or just music lines?
+> 
+> Just music lines. 
+> 
+> > - Can comments be continued with "\"?
+> 
+> No.
+>  
+> > - Are multiple occurences of any field, except "X:" and
+> "K:",
+> > allowed?
+> 
+> Only for fields where it makes sense.
+>  
+> > - Should blank lines be required between tunes?
+> 
+> Only if you want your parser to be extremely strict.
+>  
+> > - Should at least 1 tune be required?
+> 
+> No.
+>  
+> > - Is history (H:) really a multi-line field? That is, can
+> one do
+> > this?
+> > 
+> > H:blah blah blah
+> > blah blah blah
+> > K:D
+> > ABCDEF ...
+> 
+> Yes, according to the 1.6 spec. I agree that it would be much
+> nicer for
+> parser writers if it wasn't :-)
+>    
+> > - Is "E:" part of the spec.? If so, what does it do?
+> 
+> Program-specific stuff which only applies to abc2mtex (I
+> think)
+>  
+> > - Can "W:" occur in the header, in the music, or both?
+> 
+> Both, I think.
+>  
+> > - Where can H-Z be used? (Henrik Norbeck's BNF specifies
+> that
+> > they are music elements, like barlines, but not note
+> elements. )
+> 
+> Within a line of music before a note or rest.
+>  
+> > - Can an accompaniment chord occur outside of tuplet, e.g.
+> > "D"(3dcg?
+> 
+> Yes (I think).
+> 
+> James Allwright
+> .
+> outside of tuplet, e.g.
+> > "D"(3dcg?
+> 
+> Yes (I think).
+> 
+> James Allwright
+> .
+> 
+
+
+=====
+~ Thornton
+http://www.geocities.com/thornton_rose
+
+__________________________________________________
+Get personalized email addresses from Yahoo! Mail - only $35 
+a year!  http://personal.mail.yahoo.com/ 

@@ -1,0 +1,51 @@
+Tune:
+   title
+   authors
+   rhythm
+   systems
+   
+System:
+   clef
+   tempo
+   key
+   meter
+   symbols (key, meter, note, bar, ...)
+   
+Tempo:
+   beats per minute
+   beat note
+
+Key:
+   type (major, minor)
+   name (D, G, ...)
+   qualifier (mixolydian)
+
+Meter:
+   beats per measure
+   beat note
+   
+Note:
+   type (normal, grace)
+   duration
+   pitch
+   draw
+
+Clef:
+   type (treble, bass)
+
+Bar:
+   type (single, double, begin repeat, end repeat, end)
+
+Connector:
+   type (slur, tie)
+   notes
+
+Group:
+   type (broken rhythm, normal, tuplet)
+   notes
+
+Accidental:
+   type (sharp, flat, natural)
+   
+Ornament:
+   type (roll, cran, cut, strike)

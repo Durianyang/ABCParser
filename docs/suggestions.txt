@@ -1,0 +1,10 @@
+- Add a version tag.
+
+- If H: is multi-line, change it to multiple occurrence.
+
+- Add tags to make things easier to parse:
+
+  %%version  / <version>
+  %%tune     / <tune>
+  %%music    / <music>
+  %%endtune  / <endtune>

@@ -1,0 +1,4 @@
+#!/bin/sh
+# parse -- Parse file with ABCParser.
+
+java -classpath src ABCParser $*

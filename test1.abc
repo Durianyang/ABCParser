@@ -1,0 +1,44 @@
+%File   - B:, F:, G:, H:, I:, M:, O:, R:
+%Header - A:, B:, C:, D:, G:, H:, I:, K:, L:, M:, N:, O:, P:, Q:, R:, S:, T:,
+%         X:, Z:
+%Music  - K:, L:, M:, P:, Q:, T:, W:
+
+B:Book
+F:test1.abc
+G:Group
+H:History
+I:Info
+M:C
+O:Origin
+R:Rhythm
+
+X:1
+T:Tune 1
+A:Area
+B:Book
+C:Composer
+D:Discography
+G:Group
+H:History
+I:Info
+L:1/8
+M:2/4
+N:Notes
+O:Origin
+P:A
+Q:1/4=78
+R:Rhythm
+S:Source
+W:Words
+Z:Transcription note
+K:D major
+"D"{CAB}B::A2 [Aa] (3"D"DEF [1 D2 [2 .B.C ||
+K:C
+L:1/8
+M:4/4
+P:B
+Q:78
+W:Words
+T:Section Title
+"D"DEF | FGA |]
+

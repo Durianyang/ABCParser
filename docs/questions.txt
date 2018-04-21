@@ -1,0 +1,34 @@
+ABC Questions
+
+- Tex commands are specified in Henrik Norbeck's BNF. Are they part of the 
+  standard?
+
+- What should the line terminator be -- linefeed (\n), carriage return (\r),
+  CRLF (\r\n), or any one of these?
+
+- Can any line be continued with "\" or just music lines?
+
+- Can comments be continued with "\"?
+
+- Are multiple occurences of any field, except "X:" and "K:", allowed?
+
+- Should blank lines be required between tunes?
+
+- Should at least 1 tune be required?
+
+- Is history (H:) really a multi-line field? That is, can one do this?
+
+H:blah blah blah
+blah blah blah
+K:D
+ABCDEF ...
+  
+- Is "E:" part of the spec.? If so, what does it do?
+
+- Can "W:" occur in the header, in the music, or both?
+
+- Where can H-Z be used? (Henrik Norbeck's BNF specifies that they are music
+elements, like barlines, but not note elements.)
+
+- Can an accompaniment chord occur outside of tuplet, e.g. "D"(3dcg?
+
